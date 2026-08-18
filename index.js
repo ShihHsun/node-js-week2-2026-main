@@ -26,8 +26,12 @@ const { formidable } = require('formidable');  // formidable v3 用 named import
  *   // { uploadDir: '/tmp/uploads', maxFileSize: 10485760, gymName: 'FitClub' }
  */
 function getUploadConfig() {
-  // TODO: 實作此函式
-  // 提示：用 || 給預設值；MAX_FILE_SIZE_MB 是字串，記得先 Number() 轉型再換算 bytes
+  const uploadDir = process.env.UPLOAD_DIR || '/tmp';
+  // Number() 會把字串轉成數字，若 process.env.MAX_FILE_SIZE_MB 未設定，則回傳 NaN，這時候用 || 5 取預設值
+  const maxFileSize = Number(process.env.MAX_FILE_SIZE_MB || 5) * 1024 * 1024;
+  const gymName = process.env.GYM_NAME || '未命名健身房';
+
+  return { uploadDir, maxFileSize, gymName };
 }
 
 // ========== 任務二：取副檔名 ==========
