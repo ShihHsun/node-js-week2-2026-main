@@ -153,7 +153,63 @@ function router(req, res, config) {
   //     form.on('error', (err) => {
   //       console.log(err); // 記錄 log、清理暫存檔、額外監控可以寫在這邊
   //     });  
-}
+  const handleUpload = (req, res, config) => {
+    const form = formidable({
+      uploadDir: config.uploadDir, //上傳檔案儲存目錄
+      maxFileSize: config.maxFileSize, //上傳檔案大小限制
+      keepExtensions: true, //保留副檔名 
+    });
+
+    // 監控錯誤事件
+    form.on('error', (error) => {
+      console.log(error);
+    });
+
+    // parse 解析檔案，error: 解析錯誤，fields: 一般文字欄位，files: 上傳檔案資訊
+    form.parse(req, (error, fields, files) => {
+      if (error) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: error.message }));
+        return;
+      }  
+
+      // 抓取上傳檔案的名稱 和 第一個檔案
+      const file = files.file && files.file[0]; 
+      if (!file) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'No file uploaded' }));
+        return;
+      }
+
+      // 將formidable解析後的檔案資訊，轉成我們需要的metadata格式
+      const meta = parseFileMetadata(file);
+      console.log(formatUploadLog(meta, config));
+
+      res.writeHead(200, {'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        filename: meta.filename,
+        sizeKB: meta.sizeKB,
+        ext: meta.ext,
+        savedPath: file.filepath
+      }));
+
+    });
+  };
+
+  const handleNotFound = (req, res) => {
+    res.writeHead(404, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Not Found' }));
+  };
+
+  if (req.method == 'POST' && req.url == '/coaches/avatar') {
+    handleUpload(req, res, config);
+  } else {
+    handleNotFound(req, res);
+  };
+
+}  
+
+
 
 // ========== 任務六：建立上傳 server ==========
 /**
@@ -174,6 +230,17 @@ function router(req, res, config) {
 function createUploadServer(config) {
   // TODO: 實作此函式
   // 提示：主邏輯都在 router 裡，這邊函式內容不多
+
+  if (!fs.existsSync(config.uploadDir)) {
+    fs.mkdirSync(config.uploadDir, { recursive: true });
+  }
+
+  return http.createServer((req, res) => {
+    router(req, res, config);
+  });   
+  
+  return server;
+
 }
 
 module.exports = {
