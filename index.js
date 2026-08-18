@@ -55,6 +55,12 @@ function getUploadConfig() {
 function getFileExtension(filename) {
   // TODO: 實作此函式
   // 提示：用 lastIndexOf('.') 找最後一個 .，toLowerCase() 轉小寫
+  const lastDotIndex = filename.lastIndexOf('.');
+  // 如果找不到副檔名，回傳空字串
+  if (lastDotIndex == -1) {
+    return '';
+  }
+  return filename.slice(lastDotIndex).toLowerCase();
 }
 
 // ========== 任務三：解析檔案 metadata ==========
