@@ -165,7 +165,7 @@ function router(req, res, config) {
       console.log(error);
     });
 
-    // parse 解析檔案，error: 解析錯誤，fields: 一般文字欄位，files: 上傳檔案資訊
+    // parse 解析req裡面的檔案，error: 解析錯誤，fields: 一般文字欄位，files: 上傳檔案資訊
     form.parse(req, (error, fields, files) => {
       if (error) {
         res.writeHead(500, { 'Content-Type': 'application/json' });
@@ -181,7 +181,9 @@ function router(req, res, config) {
         return;
       }
 
-      // 將formidable解析後的檔案資訊，轉成我們需要的metadata格式
+      //呼叫任務三和任務四工具
+      // parseFileMetadata 解析檔案物件資訊
+      // formatUploadLog 上傳檔案資訊
       const meta = parseFileMetadata(file);
       console.log(formatUploadLog(meta, config));
 
@@ -231,6 +233,8 @@ function createUploadServer(config) {
   // TODO: 實作此函式
   // 提示：主邏輯都在 router 裡，這邊函式內容不多
 
+  // 如果存檔資料夾不存在，就用 fs.mkdirSync 建立這個資料夾。
+  // recursive: true 意思是如果指定路徑是 /tmp/a/b，就算 a 不存在，它也會順便幫你把 a 跟 b 一起建好
   if (!fs.existsSync(config.uploadDir)) {
     fs.mkdirSync(config.uploadDir, { recursive: true });
   }
